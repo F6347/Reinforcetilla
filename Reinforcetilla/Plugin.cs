@@ -2,6 +2,7 @@
 using System;
 using System.Threading.Tasks;
 using BepInEx;
+using GorillaGameModes;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Reinforcetilla
@@ -16,8 +17,13 @@ namespace Reinforcetilla
         GameObject buttonR;
         GameObject buttonL;
         GTZone lastZone;
+        void Awake()
+        {
+            PlayerPrefs.SetString("currentGameMode", PlayerPrefs.GetString("currentGameMode").Replace("MODDED_", ""));
+        }
         void OnEnable()
         {
+            
             HarmonyPatches.ApplyHarmonyPatches();
             GorillaTagger.OnPlayerSpawned(OnGameInitialized);
         }
@@ -72,7 +78,7 @@ namespace Reinforcetilla
                     firstButton = firstButton ?? gamemodeButton.transform;
                     gamemodeButton.gameMode = setActive ? gamemodeButton.gameMode.Contains("MODDED_") ? gamemodeButton.gameMode : "MODDED_" + gamemodeButton.gameMode : gamemodeButton.gameMode.Replace("MODDED_", "");
                     var title = gamemodeButton.transform.Find("Title").GetComponent<TMPro.TextMeshPro>();
-                    title.text = gamemodeButton.gameMode.Replace(setActive ? "MODDED_" : "MOD. ", setActive ? "MOD. " : "");
+                    title.text = gamemodeButton.gameMode.Replace(setActive ? "MODDED_" : "Mod. ", setActive ? "Mod. " : "");
                     title.fontSize = setActive ? (975 / gamemodeButton.gameMode.Length) : 80;
                 }
             }
