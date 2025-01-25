@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 using BepInEx;
-using GorillaGameModes;
+using GorillaNetworking;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Reinforcetilla
@@ -19,12 +19,10 @@ namespace Reinforcetilla
         GTZone lastZone;
         void Awake()
         {
-            PlayerPrefs.SetString("currentGameMode", PlayerPrefs.GetString("currentGameMode").Replace("MODDED_", ""));
+            HarmonyPatches.ApplyHarmonyPatches();
         }
         void OnEnable()
         {
-            
-            HarmonyPatches.ApplyHarmonyPatches();
             GorillaTagger.OnPlayerSpawned(OnGameInitialized);
         }
         void OnGameInitialized()
@@ -84,10 +82,10 @@ namespace Reinforcetilla
             }
             catch (Exception e)
             {
-                Debug.LogError("Couldn't find the gamemode stand.  : "+e);
+                Debug.LogError("Couldn't find the gamemode stand.  : " + e);
             }
-            var lastSelectedGM = GorillaNetworking.GorillaComputer.instance.currentGameMode.Value;
-            if (onModdedPage ^ setActive) GorillaNetworking.GorillaComputer.instance.currentGameMode.Value = lastSelectedGM.Contains("MODDED_") ? lastSelectedGM.Replace("MODDED_", "") : "MODDED_" + lastSelectedGM;
+            var lastSelectedGM = GorillaComputer.instance.currentGameMode.Value;
+            if (onModdedPage ^ setActive) GorillaComputer.instance.currentGameMode.Value = lastSelectedGM.Contains("MODDED_") ? lastSelectedGM.Replace("MODDED_", "") : "MODDED_" + lastSelectedGM;
             onModdedPage = setActive;
         }
     }
