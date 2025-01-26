@@ -19,11 +19,16 @@ namespace Reinforcetilla
         GTZone lastZone;
         void Awake()
         {
+            PlayerPrefs.SetString("currentGameMode", PlayerPrefs.GetString("currentGameMode").Replace("MODDED_", ""));
             HarmonyPatches.ApplyHarmonyPatches();
         }
         void OnEnable()
         {
             GorillaTagger.OnPlayerSpawned(OnGameInitialized);
+        }
+        void OnDisable()
+        {
+           HarmonyPatches.RemoveHarmonyPatches();
         }
         void OnGameInitialized()
         {
