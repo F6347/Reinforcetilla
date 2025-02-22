@@ -14,10 +14,10 @@ namespace Reinforcetilla
         bool onModdedPage;
         GameObject buttonR, buttonL;
         GTZone lastZone;
-
+        string oldGM;
         void Awake()
         {
-            PlayerPrefs.SetString("currentGameMode", "Infection");
+            PlayerPrefs.SetString("currentGameMode", PlayerPrefs.GetString("currentGameMode").Replace("MODDED_", ""));
             HarmonyPatches.ApplyHarmonyPatches();
         }
         void OnEnable()
@@ -35,7 +35,7 @@ namespace Reinforcetilla
             buttonL = Instantiate(buttonR);
             buttonL.name = "buttonL";
             buttonL.GetComponent<GorillaPressableButton>().onPressed += OnButtonPressed;
-
+            NetworkSystem.Instance.OnJoinedRoomEvent += () => GorillaComputer.instance.currentGameMode.Value = oldGM;
             OnEnteredNewMap();
         }
 
@@ -48,6 +48,7 @@ namespace Reinforcetilla
         }
         void Update()
         {
+            if (NetworkSystem.Instance.netState == NetSystemState.Connecting) oldGM = GorillaComputer.instance.currentGameMode.Value;
             if (VRRig.LocalRig.zoneEntity.currentZone != lastZone) OnEnteredNewMap();
             lastZone = VRRig.LocalRig.zoneEntity.currentZone;
         }
@@ -55,7 +56,7 @@ namespace Reinforcetilla
         async void OnEnteredNewMap()
         {
             button = null;
-            await Task.Delay(1000);
+            await Task.Delay(500);
             ToggleModdeds(onModdedPage);
             try
             {
