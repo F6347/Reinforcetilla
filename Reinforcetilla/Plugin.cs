@@ -4,70 +4,67 @@ using System.Threading.Tasks;
 using BepInEx;
 using GorillaNetworking;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 namespace Reinforcetilla
 {
     [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
     public class Plugin : BaseUnityPlugin
     {
-        GameObject forestButton;
-        Transform firstButton;
-        bool onModdedPage = false;
-        bool wasForestActive;
-        GameObject buttonR;
-        GameObject buttonL;
+        Transform button;
+        float difButton;
+        bool onModdedPage;
+        GameObject buttonR, buttonL;
         GTZone lastZone;
+
         void Awake()
         {
-            PlayerPrefs.SetString("currentGameMode", PlayerPrefs.GetString("currentGameMode").Replace("MODDED_", ""));
+            PlayerPrefs.SetString("currentGameMode", "Infection");
             HarmonyPatches.ApplyHarmonyPatches();
         }
         void OnEnable()
         {
             GorillaTagger.OnPlayerSpawned(OnGameInitialized);
         }
-        void OnDisable()
-        {
-           HarmonyPatches.RemoveHarmonyPatches();
-        }
         void OnGameInitialized()
         {
-            SceneManager.sceneLoaded += delegate (Scene scene, LoadSceneMode mode) { OnEnteredNewMap(); };
-            SceneManager.sceneUnloaded += delegate (Scene scene) { OnEnteredNewMap(); };
             buttonR = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            buttonR.transform.localScale = new Vector3(0.07f, 0.07f, 0.07f);
             buttonR.layer = 18;
             buttonR.GetComponent<Renderer>().material = new Material(Shader.Find("GorillaTag/UberShaderNonSRP")) { color = new Color(0.8f, 0.8f, 0.7f) };
-            buttonR.AddComponent<GorillaPressableButton>().onPressed += onButtonPressed;
             buttonR.name = "buttonR";
+            buttonR.AddComponent<GorillaPressableButton>().onPressed += OnButtonPressed;
+
             buttonL = Instantiate(buttonR);
-            buttonL.GetComponent<GorillaPressableButton>().onPressed += onButtonPressed;
             buttonL.name = "buttonL";
+            buttonL.GetComponent<GorillaPressableButton>().onPressed += OnButtonPressed;
+
+            OnEnteredNewMap();
         }
-        async void onButtonPressed(GorillaPressableButton button, bool leftHand)
+
+        async void OnButtonPressed(GorillaPressableButton button, bool hand)
         {
             button.GetComponent<Renderer>().material.color = Color.red;
-            ToggleModdeds(button.gameObject.name == "buttonR");
+            ToggleModdeds(button.gameObject.name.Contains("R"));
             await Task.Delay(150);
             button.GetComponent<Renderer>().material.color = new Color(0.8f, 0.8f, 0.7f);
         }
         void Update()
         {
-            if (forestButton.activeInHierarchy && !wasForestActive || VRRig.LocalRig.zoneEntity.currentZone != lastZone && VRRig.LocalRig.zoneEntity.currentZone.ToString() == "customMaps") OnEnteredNewMap();
-            wasForestActive = forestButton.activeInHierarchy;
+            if (VRRig.LocalRig.zoneEntity.currentZone != lastZone) OnEnteredNewMap();
             lastZone = VRRig.LocalRig.zoneEntity.currentZone;
         }
+
         async void OnEnteredNewMap()
         {
-            firstButton = null;
-            await Task.Delay(250);
+            button = null;
+            await Task.Delay(1000);
             ToggleModdeds(onModdedPage);
             try
             {
-                buttonR.transform.rotation = firstButton.rotation;
-                buttonR.transform.position = firstButton.position - firstButton.up * 0.18f;
-                buttonL.transform.rotation = firstButton.rotation;
-                buttonL.transform.position = buttonR.transform.position + buttonR.transform.right * 0.4f;
+                buttonR.transform.localScale = button.lossyScale * 1.05f;
+                buttonR.transform.rotation = button.rotation;
+                buttonR.transform.position = buttonR.transform.position = button.position - button.up * difButton;
+                buttonL.transform.localScale = button.lossyScale * 1.05f;
+                buttonL.transform.rotation = button.rotation;
+                buttonL.transform.position = buttonR.transform.position + buttonR.transform.right * difButton* .86f;
             }
             catch { }
         }
@@ -77,8 +74,7 @@ namespace Reinforcetilla
             {
                 foreach (ModeSelectButton gamemodeButton in GameObject.FindObjectsOfType<ModeSelectButton>())
                 {
-                    forestButton = forestButton ?? gamemodeButton.gameObject;
-                    firstButton = firstButton ?? gamemodeButton.transform;
+                    button = gamemodeButton.transform;
                     gamemodeButton.gameMode = setActive ? gamemodeButton.gameMode.Contains("MODDED_") ? gamemodeButton.gameMode : "MODDED_" + gamemodeButton.gameMode : gamemodeButton.gameMode.Replace("MODDED_", "");
                     var title = gamemodeButton.transform.Find("Title").GetComponent<TMPro.TextMeshPro>();
                     title.text = gamemodeButton.gameMode.Replace(setActive ? "MODDED_" : "Mod. ", setActive ? "Mod. " : "");
@@ -87,8 +83,10 @@ namespace Reinforcetilla
             }
             catch (Exception e)
             {
-                Debug.LogError("Couldn't find the gamemode stand.  : " + e);
+                Debug.LogError("Couldn't find the gamemode stand.  Error: " + e);
+                return;
             }
+            difButton = button.lossyScale.magnitude * 4.1f;
             var lastSelectedGM = GorillaComputer.instance.currentGameMode.Value;
             if (onModdedPage ^ setActive) GorillaComputer.instance.currentGameMode.Value = lastSelectedGM.Contains("MODDED_") ? lastSelectedGM.Replace("MODDED_", "") : "MODDED_" + lastSelectedGM;
             onModdedPage = setActive;

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using GorillaGameModes;
 using GorillaNetworking;
 using HarmonyLib;
-using UnityEngine;
-using UnityEngine.Windows;
 
 namespace Reinforcetilla.Patches
 {
@@ -13,7 +12,8 @@ namespace Reinforcetilla.Patches
     {
         static bool Prefix(GorillaNetworkJoinTrigger __instance, ref string __result)
         {
-            __result = __instance.forceGameType == "" ? GorillaComputer.instance.currentGameMode.Value : char.ToUpper(__instance.forceGameType[0]) + __instance.forceGameType.Substring(1).ToLower();
+            HashSet<GameModeType> validGM = GameMode.GameModeZoneMapping.GetModesForZone(__instance.zone, NetworkSystem.Instance.SessionIsPrivate);
+            __result = validGM.Contains(Enum.Parse<GameModeType>(GorillaComputer.instance.currentGameMode.Value.Replace("MODDED_", ""))) ? GorillaComputer.instance.currentGameMode.Value : validGM.Single().ToString();
             return false;
         }
     }
