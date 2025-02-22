@@ -6,7 +6,7 @@ using GorillaNetworking;
 using UnityEngine;
 namespace Reinforcetilla
 {
-    [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
+    [BepInPlugin("com.f6347.gorillatag.reinforcetilla", "Reinforcetilla", "1.0.3")]
     public class Plugin : BaseUnityPlugin
     {
         Transform button;

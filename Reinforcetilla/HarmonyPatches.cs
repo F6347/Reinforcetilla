@@ -11,7 +11,7 @@ namespace Reinforcetilla
         private static Harmony instance;
 
         public static bool IsPatched { get; private set; }
-        public const string InstanceId = PluginInfo.GUID;
+        public const string InstanceId = "com.f6347.gorillatag.reinforcetilla";
 
         internal static void ApplyHarmonyPatches()
         {
