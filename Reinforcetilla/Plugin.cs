@@ -17,7 +17,7 @@ namespace Reinforcetilla
         string oldGM;
         void Awake()
         {
-            PlayerPrefs.SetString("currentGameMode", PlayerPrefs.GetString("currentGameMode").Replace("MODDED_", ""));
+            PlayerPrefs.SetString("currentGameMode", "Infection");
             HarmonyPatches.ApplyHarmonyPatches();
         }
         void OnEnable()
